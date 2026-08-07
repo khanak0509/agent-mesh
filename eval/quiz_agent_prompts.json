@@ -1,0 +1,58 @@
+[
+  {
+    "id": "q01",
+    "topic": "photosynthesis",
+    "num_questions": 3,
+    "difficulty": "medium",
+    "criteria": "Exactly one correct label per question; four options; distractors plausible; no ambiguous stems."
+  },
+  {
+    "id": "q02",
+    "topic": "binary search",
+    "num_questions": 3,
+    "difficulty": "medium",
+    "criteria": "Questions test understanding of sorted input and logarithmic lookups; single correct answers."
+  },
+  {
+    "id": "q03",
+    "topic": "supply and demand",
+    "num_questions": 4,
+    "difficulty": "easy",
+    "criteria": "Pedagogically sound intro econ; explanations teach; no trick double-negatives."
+  },
+  {
+    "id": "q04",
+    "topic": "World War I causes",
+    "num_questions": 3,
+    "difficulty": "medium",
+    "criteria": "Historically reasonable; not cartoonishly wrong distractors; one clear key."
+  },
+  {
+    "id": "q05",
+    "topic": "Python lists vs tuples",
+    "num_questions": 3,
+    "difficulty": "easy",
+    "criteria": "Correct mutability distinctions; options not trivially silly."
+  },
+  {
+    "id": "q06",
+    "topic": "Newton's laws",
+    "num_questions": 4,
+    "difficulty": "medium",
+    "criteria": "Physics accurate; units/concepts not mixed confusingly; single correct choice."
+  },
+  {
+    "id": "q07",
+    "topic": "mitosis",
+    "num_questions": 3,
+    "difficulty": "medium",
+    "criteria": "Phase facts correct; distractors are common misconceptions."
+  },
+  {
+    "id": "q08",
+    "topic": "HTTP status codes",
+    "num_questions": 3,
+    "difficulty": "easy",
+    "criteria": "200/400/500 family distinctions correct; unambiguous."
+  }
+]
