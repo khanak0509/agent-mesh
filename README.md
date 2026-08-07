@@ -1,67 +1,160 @@
 # Desk
 
-**Learn AI/ML like a path — not a chat dump.**
+### A distributed multi-agent study platform for AI/ML
 
-Desk is a multi-agent study workspace. You pick a topic. It builds a full roadmap. Lessons unlock step by step. Quizzes appear at checkpoints. Flashcards pile up as you go. Daily practice keeps you sharp.
+**Desk** is not another chatbot wrapped in a pretty shell.  
+It’s a full learning product: study paths, checkpoint quizzes, flashcards, daily practice, and progress — powered by a mesh of specialized agents that talk over queues.
 
----
-
-## Why Desk
-
-Most AI tutors dump a wall of text and hope you remember it. Desk treats learning as a product:
-
-- **Roadmap first** — see the whole journey before you start
-- **Proceed at your pace** — one lesson, then Continue
-- **Real checkpoints** — quizzes live in their own tab, not mashed into chat
-- **Practice arena** — MCQ, short answer, or code (the model chooses)
-- **Daily concept** — one sharp idea every day
+Built as a real system: FastAPI microservices, RabbitMQ, Postgres, Redis, React, Docker, CI, and an LLM-judge eval gate.
 
 ---
 
-## What’s inside
+## Why this exists
 
-| Space | What you get |
+Most “AI tutors” do one thing: dump text into a thread.
+
+Desk does something different:
+
+1. **Propose a roadmap** before teaching  
+2. **Teach one lesson at a time** with a clear Proceed / Continue loop  
+3. **Unlock quizzes at checkpoints** in their own tab (never merged into chat)  
+4. **Reteach** only what you missed  
+5. **Grow flashcards** continuously from lessons  
+6. **Practice daily** in an arena where the model picks MCQ / short / code  
+
+It feels like a study coach with a curriculum — not a blank prompt box.
+
+---
+
+## Product tour
+
+| Surface | What it does |
 | --- | --- |
-| **Path** | Study plans, lessons, reteach when you miss a quiz |
-| **Quiz** | Separate checkpoint quizzes — never merged |
-| **Cards** | Flashcards that grow from every lesson |
-| **Problems** | Arena practice with same-tab feedback |
-| **Daily** | One concept to keep the streak alive |
-| **Progress** | Streaks, scores, topics you’ve touched |
+| **Path** | Ask to study a topic → full roadmap → Proceed → lessons → Continue |
+| **Quiz** | Separate checkpoint quizzes (Quiz 1, Quiz 2, …) with same-tab feedback + reteach |
+| **Cards** | Flashcards accumulated from every lesson |
+| **Problems** | Arena practice — format chosen by the model; wrong MCQ explains in-tab |
+| **Daily** | One sharp concept every day |
+| **Progress** | Streaks, quiz scores, topics touched |
 
-Under the hood it’s a small mesh of agents (router, study, quiz, progress) talking over queues — so each job stays focused instead of one giant prompt.
+### Session flow
 
----
-
-## Try it locally
-
-**1. Env**
-
-```bash
-cp .env.example .env
-# put your OPENAI_API_KEY in .env
+```text
+“I want to study machine learning”
+        │
+        ▼
+   Full roadmap (lessons + quiz gates)
+        │  Proceed
+        ▼
+   Lesson 1  →  Continue  →  Lesson 2  →  Quiz unlocks
+        │
+        ▼
+   Quiz tab (own session) → miss? reteach on Path → back to Quiz
+        │
+        ▼
+   Cards grow in the background · Progress updates
 ```
 
-**2. Run the stack**
+---
+
+## Architecture
+
+Desk is intentionally **multi-agent**, not a single LLM loop.
+
+```text
+                 ┌────────────┐
+   Browser ─────▶│  Gateway   │◀── WebSocket + REST
+   (React/TS)    │  :8000     │
+                 └─────┬──────┘
+                       │
+                 ┌─────▼──────┐
+                 │   Router   │  intent classification
+                 │   :8001    │
+                 └─────┬──────┘
+           ┌───────────┼───────────┐
+           ▼           ▼           ▼
+     Study Agent   Quiz Agent   Progress
+       :8002         :8003        :8004
+           │           │           │
+           └───── RabbitMQ ────────┘
+                       │
+              Postgres · Redis
+```
+
+### Services
+
+| Service | Role |
+| --- | --- |
+| **Gateway** | SPA host, WebSocket fan-out, arena/daily/ratings HTTP APIs |
+| **Router** | Routes study / quiz / progress / flashcard intents (with circuit-breaker fallbacks) |
+| **Study agent** | LangGraph tutoring, plan propose/start/advance, reteach, flashcard spawns |
+| **Quiz agent** | Structured quiz generation + grading |
+| **Progress** | Aggregates streaks, scores, topics |
+
+### Shared library (`shared/agent_shared`)
+
+Config, DB, Rabbit helpers, Redis/session context, idempotency, LLM helpers (LangChain structured output), schemas, ORM models, arena + ratings.
+
+---
+
+## What’s implemented (honest feature list)
+
+### Learning experience
+- Study **path proposals** with lesson + quiz steps  
+- **Proceed / Continue** pacing (Antigravity-style roadmap → teach)  
+- Checkpoint quizzes as **separate sessions** (not one merged blob)  
+- Wrong answers → **reteach** on Path → resume Quiz  
+- Markdown-rendered lessons (bold, lists, code)  
+- Gemini-style **thinking presence** while agents work  
+- Flashcards auto-grown from lessons  
+- Star **ratings** on plans, lessons, quizzes, arena, daily  
+
+### Arena & daily
+- Daily problem + daily concept  
+- LLM picks **mcq / short / code** (user doesn’t configure format)  
+- MCQ wrong → explanation in the **same tab**  
+- Problem UI parsed into title / problem / hints (not raw LLM paste)  
+- Temporary answer persistence across tab switches (sessionStorage)  
+
+### Platform / engineering
+- Docker Compose stack (Postgres, Redis, RabbitMQ, agents, Prometheus, Grafana)  
+- Alembic migrations  
+- Idempotent request handling  
+- Circuit breaker + queue-depth degradation in router  
+- Prometheus metrics + Grafana dashboard  
+- GitHub Actions CI: lint, unit tests, Docker builds, **LLM-judge eval gate**  
+- Chaos + load scripts under `scripts/`  
+- Eval prompts + judge under `eval/`  
+
+---
+
+## Tech stack
+
+**Frontend:** React 19, TypeScript, Vite  
+**Backend:** FastAPI, LangChain / LangGraph, Pydantic  
+**Data / messaging:** PostgreSQL, Redis, RabbitMQ  
+**Ops:** Docker Compose, Alembic, Prometheus, Grafana, GitHub Actions  
+
+---
+
+## Quick start
 
 ```bash
+git clone https://github.com/khanak0509/agent-mesh.git
+cd agent-mesh
+cp .env.example .env
+# add OPENAI_API_KEY (or compatible key) to .env
+
 cd infra
 docker compose up --build
 ```
 
-**3. Open Desk**
+Open **[http://localhost:8000](http://localhost:8000)**
 
-[http://localhost:8000](http://localhost:8000)
-
-That’s it. Start with Path → *“I want to study machine learning”* → review the roadmap → **Proceed**.
-
----
-
-## Frontend (hot reload)
-
-With the stack already up on `:8000`:
+### Frontend hot reload
 
 ```bash
+# stack must already be running on :8000
 cd frontend
 npm install
 npm run dev
@@ -69,33 +162,59 @@ npm run dev
 
 → [http://localhost:5173](http://localhost:5173) (API + WebSocket proxied)
 
-Ship UI into the gateway:
-
 ```bash
-cd frontend && npm run build
+cd frontend && npm run build   # ships into gateway static/
+```
+
+### Useful ports
+
+| Port | What |
+| --- | --- |
+| `8000` | Desk UI + gateway |
+| `15672` | RabbitMQ management |
+| `3000` | Grafana |
+| `9090` | Prometheus |
+
+---
+
+## Project layout
+
+```text
+frontend/                 React + TypeScript app
+services/
+  gateway/                WS + HTTP + SPA
+  router/                 Intent routing
+  study-agent/            Plans, lessons, reteach
+  quiz-agent/             Generate + grade quizzes
+  progress/               Stats aggregation
+shared/agent_shared/      Shared libs (LLM, DB, queues, schemas)
+migrations/               Alembic
+infra/                    Compose, Prometheus, Grafana
+eval/                     LLM-judge eval gate
+scripts/                  Chaos + load helpers
+.github/workflows/        CI
 ```
 
 ---
 
-## How a session feels
+## Design principles
 
-1. Ask to study something  
-2. Get a **full roadmap** (lessons + quiz checkpoints)  
-3. Hit **Proceed** — teaching starts  
-4. **Continue** after each lesson  
-5. When a quiz unlocks, open **Quiz** and finish it  
-6. Cards collect in the background — review anytime  
-
-Miss a question? Desk reteaches that idea on Path, then you jump back to the quiz.
+- **Agents with jobs**, not one mega-prompt  
+- **Curriculum before content** — roadmap first, then teach  
+- **Quizzes are first-class** — their own tab and history  
+- **Human UI** — thinking presence, markdown, no raw dumps  
+- **Operable** — compose, metrics, migrations, CI, eval gate  
 
 ---
 
-## Stack at a glance
+## Status
 
-React + TypeScript UI · FastAPI agents · RabbitMQ · Postgres · Redis · Docker Compose
+Actively built as a portfolio-grade study platform: end-to-end demoable locally with Docker, real agent fan-out, and a product-shaped UI.
 
-Ops extras (optional while developing): RabbitMQ UI `:15672` · Grafana `:3000`
+If you’re reviewing this for a resume or hiring loop — clone it, `docker compose up --build`, and walk Path → Proceed → Quiz → Cards. That’s the product.
 
 ---
 
-Built to feel calm, clear, and actually usable — a study product, not a demo dump.
+<p align="center">
+  <b>Desk</b> — study with a path, not a paste.
+</p>
