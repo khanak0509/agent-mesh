@@ -1,6 +1,47 @@
 # Desk
 
-### A distributed multi-agent study platform for AI/ML
+<p align="center">
+  <strong>A distributed multi-agent study platform for AI/ML</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/khanak0509/agent-mesh/actions/workflows/ci.yml">
+    <img src="https://github.com/khanak0509/agent-mesh/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  </a>
+  <a href="https://github.com/khanak0509/agent-mesh">
+    <img src="https://img.shields.io/github/last-commit/khanak0509/agent-mesh?style=flat-square" alt="Last commit" />
+  </a>
+  <a href="https://github.com/khanak0509/agent-mesh/stargazers">
+    <img src="https://img.shields.io/github/stars/khanak0509/agent-mesh?style=flat-square" alt="Stars" />
+  </a>
+  <a href="https://github.com/khanak0509/agent-mesh/network/members">
+    <img src="https://img.shields.io/github/forks/khanak0509/agent-mesh?style=flat-square" alt="Forks" />
+  </a>
+  <a href="https://github.com/khanak0509/agent-mesh/issues">
+    <img src="https://img.shields.io/github/issues/khanak0509/agent-mesh?style=flat-square" alt="Issues" />
+  </a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/LangChain-1C3C3C?style=flat-square&logo=langchain&logoColor=white" alt="LangChain" />
+  <img src="https://img.shields.io/badge/LangGraph-000000?style=flat-square" alt="LangGraph" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white" alt="Redis" />
+  <img src="https://img.shields.io/badge/RabbitMQ-FF6600?style=flat-square&logo=rabbitmq&logoColor=white" alt="RabbitMQ" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Prometheus-E6522C?style=flat-square&logo=prometheus&logoColor=white" alt="Prometheus" />
+  <img src="https://img.shields.io/badge/Grafana-F46800?style=flat-square&logo=grafana&logoColor=white" alt="Grafana" />
+</p>
+
+<p align="center">
+  <a href="#quick-start"><img src="https://img.shields.io/badge/Quick%20start-Get%20running-c9a227?style=for-the-badge" alt="Quick start" /></a>
+  <a href="#architecture"><img src="https://img.shields.io/badge/Architecture-Multi--agent-1f6f4a?style=for-the-badge" alt="Architecture" /></a>
+  <a href="#features"><img src="https://img.shields.io/badge/Features-Explore-2f4f6f?style=for-the-badge" alt="Features" /></a>
+</p>
 
 **Desk** is not another chatbot wrapped in a pretty shell.  
 It’s a full learning product: study paths, checkpoint quizzes, flashcards, daily practice, and progress — powered by a mesh of specialized agents that talk over queues.
