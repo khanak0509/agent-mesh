@@ -1,0 +1,89 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  DEFAULT_MODEL: gpt-5-nano
+  ROUTER_MODEL: gpt-5-nano
+  STUDY_AGENT_MODEL: gpt-5-nano
+  QUIZ_AGENT_MODEL: gpt-5-nano
+  JUDGE_MODEL: gpt-5-nano
+  EVAL_SCORE_THRESHOLD: "7.0"
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install -U pip
+          pip install -r requirements.txt
+          pip install -e shared
+          pip install ruff
+      - name: Lint
+        run: ruff check services shared scripts eval || true
+      - name: Unit tests
+        run: pytest -q
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: lint-test
+    strategy:
+      matrix:
+        service: [router, study-agent, quiz-agent, progress, gateway]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ${{ matrix.service }}
+        run: |
+          docker build -f services/${{ matrix.service }}/Dockerfile -t study-${{ matrix.service }}:ci .
+
+  eval-gate:
+    runs-on: ubuntu-latest
+    needs: lint-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          pip install -r requirements.txt
+          pip install -e shared
+      - name: Detect changed services
+        id: changed
+        run: |
+          git fetch origin ${{ github.base_ref || 'main' }} --depth=50 || true
+          BASE=${{ github.event.pull_request.base.sha || 'HEAD~1' }}
+          CHANGED=$(git diff --name-only "$BASE" HEAD || true)
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          SERVICE=both
+          if echo "$CHANGED" | grep -q 'services/study-agent' && ! echo "$CHANGED" | grep -q 'services/quiz-agent'; then
+            SERVICE=study-agent
+          elif echo "$CHANGED" | grep -q 'services/quiz-agent' && ! echo "$CHANGED" | grep -q 'services/study-agent'; then
+            SERVICE=quiz-agent
+          fi
+          # shared/llm or prompts change → run both
+          if echo "$CHANGED" | grep -Eq 'shared/|eval/'; then
+            SERVICE=both
+          fi
+          echo "service=$SERVICE" >> $GITHUB_OUTPUT
+      - name: Run LLM judge eval gate
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "OPENAI_API_KEY secret not set — failing closed"
+            exit 1
+          fi
+          python eval/judge.py --service ${{ steps.changed.outputs.service }} --threshold "$EVAL_SCORE_THRESHOLD"
