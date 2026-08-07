@@ -1,0 +1,180 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: study
+      POSTGRES_PASSWORD: study_dev_pw
+      POSTGRES_DB: study_agent
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U study -d study_agent"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: study
+      RABBITMQ_DEFAULT_PASS: study_dev_pw
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 8s
+      timeout: 8s
+      retries: 12
+
+  migrate:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.base
+    command: ["sh", "infra/migrate.sh"]
+    env_file: ../.env
+    environment:
+      POSTGRES_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  router:
+    build:
+      context: ..
+      dockerfile: services/router/Dockerfile
+    env_file: ../.env
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://study:study_dev_pw@rabbitmq:5672/
+    ports:
+      - "8001:8001"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  study-agent:
+    build:
+      context: ..
+      dockerfile: services/study-agent/Dockerfile
+    env_file: ../.env
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://study:study_dev_pw@rabbitmq:5672/
+    ports:
+      - "8002:8002"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  quiz-agent:
+    build:
+      context: ..
+      dockerfile: services/quiz-agent/Dockerfile
+    env_file: ../.env
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://study:study_dev_pw@rabbitmq:5672/
+    ports:
+      - "8003:8003"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  progress:
+    build:
+      context: ..
+      dockerfile: services/progress/Dockerfile
+    env_file: ../.env
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://study:study_dev_pw@rabbitmq:5672/
+    ports:
+      - "8004:8004"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: services/gateway/Dockerfile
+    env_file: ../.env
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://study:study_dev_pw@rabbitmq:5672/
+      ROUTER_URL: http://router:8001
+    ports:
+      - "8000:8000"
+    depends_on:
+      - router
+      - study-agent
+      - quiz-agent
+      - progress
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - router
+      - study-agent
+      - quiz-agent
+      - progress
+      - gateway
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  pgdata:
+  grafana-data:
