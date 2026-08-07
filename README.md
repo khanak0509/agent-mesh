@@ -97,7 +97,7 @@ Config, DB, Rabbit helpers, Redis/session context, idempotency, LLM helpers (Lan
 
 ---
 
-## What’s implemented (honest feature list)
+## Features
 
 ### Learning experience
 - Study **path proposals** with lesson + quiz steps  
@@ -209,9 +209,9 @@ scripts/                  Chaos + load helpers
 
 ## Status
 
-Actively built as a portfolio-grade study platform: end-to-end demoable locally with Docker, real agent fan-out, and a product-shaped UI.
+End-to-end runnable with Docker Compose — agents, queues, UI, metrics, and CI included.
 
-If you’re reviewing this for a resume or hiring loop — clone it, `docker compose up --build`, and walk Path → Proceed → Quiz → Cards. That’s the product.
+Clone it, `docker compose up --build`, and walk Path → Proceed → Quiz → Cards.
 
 ---
 
