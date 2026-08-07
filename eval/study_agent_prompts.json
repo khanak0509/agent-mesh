@@ -1,0 +1,110 @@
+[
+  {
+    "id": "s01",
+    "subject": "biology",
+    "question": "What is photosynthesis in one clear paragraph?",
+    "criteria": "Correct high-level mechanism (light energy to chemical energy), mentions chloroplasts or chlorophyll, readable for a high-school student."
+  },
+  {
+    "id": "s02",
+    "subject": "biology",
+    "question": "Explain the difference between mitosis and meiosis.",
+    "criteria": "Notes purpose (growth vs gametes), chromosome number outcome, and that meiosis has two divisions."
+  },
+  {
+    "id": "s03",
+    "subject": "biology",
+    "question": "Why do we need sleep?",
+    "criteria": "Covers memory consolidation / restoration without medical overclaim; clear and proportional depth."
+  },
+  {
+    "id": "s04",
+    "subject": "chemistry",
+    "question": "What is an ionic bond?",
+    "criteria": "Electron transfer between atoms, attraction of oppositely charged ions, simple example."
+  },
+  {
+    "id": "s05",
+    "subject": "chemistry",
+    "question": "Explain pH to someone who has never taken chemistry.",
+    "criteria": "Acid/base scale idea, 7 neutral, avoids dumping unnecessary equations."
+  },
+  {
+    "id": "s06",
+    "subject": "physics",
+    "question": "What does Newton's second law say?",
+    "criteria": "F=ma conceptually, force causes acceleration proportional to mass context."
+  },
+  {
+    "id": "s07",
+    "subject": "physics",
+    "question": "Why is the sky blue?",
+    "criteria": "Rayleigh scattering of shorter wavelengths; no astrology nonsense."
+  },
+  {
+    "id": "s08",
+    "subject": "math",
+    "question": "What is a derivative in calculus, intuitively?",
+    "criteria": "Instantaneous rate of change / slope of tangent; one concrete example."
+  },
+  {
+    "id": "s09",
+    "subject": "math",
+    "question": "Explain what a prime number is and give three examples.",
+    "criteria": "Divisible only by 1 and itself; examples correct; 1 is not prime."
+  },
+  {
+    "id": "s10",
+    "subject": "cs",
+    "question": "What is a hash table and why is average lookup fast?",
+    "criteria": "Key→hash→bucket idea; average O(1) with good hashing; collisions exist."
+  },
+  {
+    "id": "s11",
+    "subject": "cs",
+    "question": "Explain recursion with a tiny example.",
+    "criteria": "Function calling itself with base case; example is correct and small."
+  },
+  {
+    "id": "s12",
+    "subject": "history",
+    "question": "What caused the fall of the Western Roman Empire in broad strokes?",
+    "criteria": "Multiple factors (political instability, economic strain, invasions) — not a single cartoon cause."
+  },
+  {
+    "id": "s13",
+    "subject": "economics",
+    "question": "What is opportunity cost?",
+    "criteria": "Value of the next-best alternative forgone; simple example."
+  },
+  {
+    "id": "s14",
+    "subject": "literature",
+    "question": "What is dramatic irony?",
+    "criteria": "Audience knows something characters do not; example optional but helpful."
+  },
+  {
+    "id": "s15",
+    "subject": "geography",
+    "question": "Why do deserts often form near 30° latitude?",
+    "criteria": "Hadley cell / descending dry air explanation at an accessible level."
+  },
+  {
+    "id": "s16",
+    "subject": "psychology",
+    "question": "What is confirmation bias?",
+    "criteria": "Preferring info that confirms existing beliefs; brief example."
+  },
+  {
+    "id": "s17",
+    "subject": "cs",
+    "question": "Difference between a process and a thread?",
+    "criteria": "Process isolation vs shared memory threads; scheduling context."
+  },
+  {
+    "id": "s18",
+    "subject": "biology",
+    "question": "What does DNA do?",
+    "criteria": "Stores genetic instructions; protein coding at high level; not overly molecular unless clear."
+  }
+]
