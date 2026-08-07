@@ -148,7 +148,7 @@ export function PathPanel({
       >
         <input
           name="q"
-          placeholder="I want to study transformers…"
+          placeholder="Type a topic to study…"
           autoComplete="off"
           disabled={thinking}
         />

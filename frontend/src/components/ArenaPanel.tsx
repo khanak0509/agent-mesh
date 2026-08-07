@@ -27,7 +27,8 @@ function readArenaSnap(): ArenaSnap | null {
     const raw = sessionStorage.getItem(ARENA_KEY);
     if (!raw) return null;
     return JSON.parse(raw) as ArenaSnap;
-  } catch {
+  } catch (e) {
+    console.log("couldn't read arena snap", e);
     return null;
   }
 }
@@ -35,8 +36,8 @@ function readArenaSnap(): ArenaSnap | null {
 function writeArenaSnap(snap: ArenaSnap) {
   try {
     sessionStorage.setItem(ARENA_KEY, JSON.stringify(snap));
-  } catch {
-    /* ignore quota */
+  } catch (e) {
+    console.log("couldn't save arena snap", e);
   }
 }
 
@@ -73,6 +74,7 @@ export function ArenaPanel() {
     try {
       setProblem(await api.dailyProblem());
     } catch (e) {
+      console.log("daily problem load failed", e);
       setErr(String(e));
       setProblem(null);
     } finally {
@@ -87,6 +89,7 @@ export function ArenaPanel() {
     try {
       setProblem(await api.generateProblem());
     } catch (e) {
+      console.log("next problem failed", e);
       setErr(String(e));
     } finally {
       setBusy(false);
@@ -104,6 +107,7 @@ export function ArenaPanel() {
       setGrade(g);
       if (problem.format === "mcq") setPicked(payload.toUpperCase());
     } catch (e) {
+      console.log("submit failed", e);
       setErr(String(e));
     } finally {
       setBusy(false);
@@ -279,6 +283,7 @@ export function DailyPanel() {
     try {
       setC(await api.dailyConcept());
     } catch (e) {
+      console.log("daily concept load failed", e);
       setErr(String(e));
     }
   }

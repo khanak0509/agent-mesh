@@ -1,9 +1,3 @@
-"""Async load test against the gateway.
-
-Usage:
-  python scripts/load_test.py --concurrency 20 --requests 100
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -33,7 +27,8 @@ async def one(client: httpx.AsyncClient, i: int, intent: str) -> tuple[bool, flo
         r = await client.post("/api/message", json=payload)
         dt = time.perf_counter() - t0
         return r.status_code < 400, dt, r.status_code
-    except Exception:
+    except Exception as e:
+        print("request failed:", e)
         return False, time.perf_counter() - t0, 0
 
 
@@ -65,20 +60,14 @@ async def run(args: argparse.Namespace) -> None:
         idx = min(len(latencies) - 1, int(p * (len(latencies) - 1)))
         return latencies[idx]
 
-    print("--- load test ---")
-    print(f"base:          {args.base}")
-    print(f"requests:      {args.requests}")
-    print(f"concurrency:   {args.concurrency}")
-    print(f"intent:        {args.intent}")
-    print(f"elapsed_s:     {elapsed:.2f}")
-    print(f"rps:           {args.requests / elapsed:.2f}")
-    print(f"ok:            {oks}")
-    print(f"fail:          {fails}")
-    print(f"error_rate:    {fails / max(args.requests, 1) * 100:.1f}%")
-    print(f"latency_avg_s: {statistics.mean(latencies) if latencies else 0:.3f}")
-    print(f"latency_p50_s: {pct(0.50):.3f}")
-    print(f"latency_p95_s: {pct(0.95):.3f}")
-    print(f"latency_p99_s: {pct(0.99):.3f}")
+    print("--- load ---")
+    print(f"hitting   {args.base}")
+    print(f"reqs      {args.requests} (x{args.concurrency} concurrent)")
+    print(f"intent    {args.intent}")
+    print(f"took      {elapsed:.2f}s  ({args.requests / elapsed:.1f} rps)")
+    print(f"ok/fail   {oks}/{fails}  ({fails / max(args.requests, 1) * 100:.1f}% err)")
+    print(f"latency   avg {statistics.mean(latencies) if latencies else 0:.3f}s")
+    print(f"          p50 {pct(0.50):.3f}s  p95 {pct(0.95):.3f}s  p99 {pct(0.99):.3f}s")
 
 
 def main() -> None:

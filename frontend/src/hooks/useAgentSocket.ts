@@ -28,8 +28,8 @@ export function useAgentSocket({ onMessage }: Handlers) {
       ws.onmessage = (ev) => {
         try {
           onMessageRef.current(JSON.parse(ev.data) as WsMsg);
-        } catch {
-          /* ignore bad frames */
+        } catch (e) {
+          console.log("bad ws message", e);
         }
       };
     };

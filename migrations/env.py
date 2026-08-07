@@ -1,5 +1,3 @@
-"""Alembic env — loads models from shared package."""
-
 from logging.config import fileConfig
 import os
 import sys

@@ -20,7 +20,6 @@ def already_processed(session: Session, request_id: str, service: str) -> bool:
 
 
 def mark_processed(session: Session, request_id: str, service: str) -> bool:
-    """Returns False if this request was already marked (race-safe upsert)."""
     stmt = (
         insert(ProcessedMessage)
         .values(request_id=request_id, service=service)

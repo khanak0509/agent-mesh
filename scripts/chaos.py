@@ -1,9 +1,3 @@
-"""Kill a service mid-flow and watch recovery.
-
-Usage (from repo root, with compose already up):
-  python scripts/chaos.py --service quiz-agent --compose infra/docker-compose.yml
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -24,7 +18,8 @@ def health(url: str) -> bool:
     try:
         r = httpx.get(url, timeout=2.0)
         return r.status_code == 200
-    except Exception:
+    except Exception as e:
+        print("health check failed:", e)
         return False
 
 
@@ -46,7 +41,7 @@ def main() -> None:
     }
     target = args.target_health or health_map.get(args.service, args.gateway)
 
-    print(f"[{utcnow()}] chaos start — stopping {args.service}")
+    print(f"[{utcnow()}] killing {args.service}")
     t0 = time.perf_counter()
     sh(["docker", "compose", "-f", args.compose, "stop", args.service])
 
@@ -57,13 +52,12 @@ def main() -> None:
             break
         time.sleep(0.5)
     if dead_at is None:
-        print("service never went down?")
+        print("huh, service never went down")
         return
 
     downtime_detect = dead_at - t0
-    print(f"[{utcnow()}] detected down in {downtime_detect:.2f}s")
+    print(f"[{utcnow()}] dead after {downtime_detect:.2f}s")
 
-    # keep sending traffic through gateway while it's broken
     errors = 0
     attempts = 20
     with httpx.Client(timeout=5.0) as client:
@@ -79,13 +73,14 @@ def main() -> None:
                 )
                 if r.status_code >= 400:
                     errors += 1
-            except Exception:
+            except Exception as e:
+                print("probe failed:", e)
                 errors += 1
             time.sleep(0.2)
 
-    print(f"[{utcnow()}] probes during outage: {errors}/{attempts} errors")
+    print(f"[{utcnow()}] while down: {errors}/{attempts} probes failed")
 
-    print(f"[{utcnow()}] restarting {args.service}")
+    print(f"[{utcnow()}] bringing {args.service} back")
     restart_t0 = time.perf_counter()
     sh(["docker", "compose", "-f", args.compose, "start", args.service])
 
@@ -97,18 +92,18 @@ def main() -> None:
         time.sleep(0.5)
 
     if recovered_at is None:
-        print("FAILED to recover")
+        print("never came back")
         raise SystemExit(1)
 
     recovery = recovered_at - restart_t0
     total = recovered_at - t0
-    print("--- chaos results ---")
-    print(f"service:            {args.service}")
-    print(f"detect_down_s:      {downtime_detect:.2f}")
-    print(f"outage_error_rate:  {errors}/{attempts} ({errors/attempts*100:.0f}%)")
-    print(f"recovery_s:         {recovery:.2f}")
-    print(f"total_chaos_window: {total:.2f}")
-    print(f"gateway_still_up:   {health(args.gateway)}")
+    print("--- chaos ---")
+    print(f"service  {args.service}")
+    print(f"noticed  {downtime_detect:.2f}s")
+    print(f"errors   {errors}/{attempts} ({errors/attempts*100:.0f}%)")
+    print(f"recover  {recovery:.2f}s")
+    print(f"total    {total:.2f}s")
+    print(f"gateway  {'up' if health(args.gateway) else 'down'}")
 
 
 def utcnow() -> str:

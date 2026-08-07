@@ -1,5 +1,3 @@
-"""Study-agent: plans, lessons, reteach, flashcards. Quiz only at plan checkpoints."""
-
 import asyncio
 from contextlib import asynccontextmanager
 from typing import Any, Optional, TypedDict
@@ -316,7 +314,7 @@ async def _teach_plan_step(channel, plan: StudyPlan, request_id: str, user_id: s
                 request_id=request_id,
                 user_id=user_id,
                 intent=Intent.STUDY,
-                content="Path complete — nice work. Open Progress to see how you’ve been doing, or start a new path.",
+                content="Path done. Check Progress, or start another one.",
                 payload={"kind": "plan_done", "plan_id": plan.id, "mode": "advance"},
             ).model_dump(),
         )
@@ -350,7 +348,6 @@ async def _teach_plan_step(channel, plan: StudyPlan, request_id: str, user_id: s
         )
         return
 
-    # lesson step
     prompt = (
         f"Path: {plan.title}\n"
         f"Step {idx + 1}/{len(steps)}: {step.get('title')}\n"
@@ -414,7 +411,6 @@ async def handle_plan_start(data: dict[str, Any], channel) -> None:
         plan.status = "active"
         plan.current_step = 0
         session.flush()
-        # detach values we need after session closes
         snap = StudyPlan(
             id=plan.id,
             request_id=plan.request_id,
@@ -433,7 +429,6 @@ async def handle_plan_start(data: dict[str, Any], channel) -> None:
 
 
 async def handle_plan_advance(data: dict[str, Any], channel) -> None:
-    """Move past current step (after lesson done or quiz finished)."""
     request_id = data["request_id"]
     user_id = data.get("user_id", "demo-user")
     plan_id = data["plan_id"]
@@ -508,7 +503,6 @@ async def handle_study(data: dict[str, Any], channel) -> None:
             "mode": mode,
         }
 
-        # flashcards grow with conversation; never auto-dump a quiz here
         if mode != "reteach":
             card_rid = await _spawn_flashcards(
                 channel, user_id, answer.topic, content, request_id
@@ -528,10 +522,11 @@ async def handle_study(data: dict[str, Any], channel) -> None:
         )
         circuit_record_success("study-agent")
         log.info("study_done", topic=answer.topic, mode=mode)
-    except Exception as exc:
+    except Exception as e:
+        print("study blew up:", e)
         circuit_record_failure("study-agent")
-        log.exception("study_failed", error=str(exc))
-        if "timeout" in str(exc).lower() or "rate" in str(exc).lower():
+        log.exception("study_failed", error=str(e))
+        if "timeout" in str(e).lower() or "rate" in str(e).lower():
             raise
         await publish_json(
             channel,
@@ -541,8 +536,8 @@ async def handle_study(data: dict[str, Any], channel) -> None:
                 user_id=user_id,
                 intent=Intent.STUDY,
                 status="error",
-                error=str(exc),
-                content="Couldn't generate an answer right now. Try again in a moment.",
+                error=str(e),
+                content="Couldn't get an answer. Try again in a sec.",
             ).model_dump(),
         )
 
@@ -636,10 +631,11 @@ async def handle_flashcards(data: dict[str, Any], channel) -> None:
         )
         circuit_record_success("study-agent")
         log.info("flashcards_done", count=len(stored))
-    except Exception as exc:
+    except Exception as e:
+        print("flashcards blew up:", e)
         circuit_record_failure("study-agent")
-        log.exception("flashcard_failed", error=str(exc))
-        if "timeout" in str(exc).lower() or "rate" in str(exc).lower():
+        log.exception("flashcard_failed", error=str(e))
+        if "timeout" in str(e).lower() or "rate" in str(e).lower():
             raise
         await publish_json(
             channel,
@@ -649,8 +645,8 @@ async def handle_flashcards(data: dict[str, Any], channel) -> None:
                 user_id=user_id,
                 intent=Intent.FLASHCARD,
                 status="error",
-                error=str(exc),
-                content="Couldn't build flashcards right now.",
+                error=str(e),
+                content="Couldn't make flashcards.",
             ).model_dump(),
         )
 

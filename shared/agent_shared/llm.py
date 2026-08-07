@@ -19,7 +19,6 @@ def make_llm(model: Optional[str] = None, temperature: float = 0.3) -> ChatOpenA
 
 
 def generate(prompt: str, system: Optional[str] = None, model: Optional[str] = None) -> str:
-    """Plain text generation via a tiny LCEL chain."""
     llm = make_llm(model=model)
     messages = []
     if system:
@@ -35,7 +34,6 @@ def generate_structured(
     system: Optional[str] = None,
     model: Optional[str] = None,
 ) -> T:
-    """Uses with_structured_output so we don't pray the model returns clean JSON."""
     llm = make_llm(model=model, temperature=0.2)
     structured = llm.with_structured_output(schema)
     messages = []

@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-/** Turn bare LLM-ish text into readable blocks with inline code for formulas. */
 export function formatRichText(text: string): ReactNode[] {
   const raw = (text || "").trim();
   if (!raw) return [];
@@ -26,7 +25,6 @@ export function formatRichText(text: string): ReactNode[] {
 }
 
 function formatInline(line: string): ReactNode[] {
-  // formulas / identifiers: lr_t = ..., gamma^5, O(n), snake_case tokens with ops
   const re =
     /(`[^`]+`)|(\b[a-zA-Z][a-zA-Z0-9_]*\s*=\s*[^\n,;]+)|(\b[a-zA-Z][a-zA-Z0-9_]*\^[0-9]+)|(\b(?:lr|lr0|lr_t|gamma|lambda|alpha|beta|eta)[a-zA-Z0-9_^]*)/g;
 
@@ -49,7 +47,6 @@ function formatInline(line: string): ReactNode[] {
   return nodes.length ? nodes : [line];
 }
 
-/** Prefer structured hints; peel trailing tip-lines out of a mushy prompt. */
 export function splitPromptAndHints(
   prompt: string,
   hints: string[] | undefined,

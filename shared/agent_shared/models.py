@@ -123,8 +123,6 @@ class ProgressSnapshot(Base):
 
 
 class ProcessedMessage(Base):
-    """Idempotency ledger — if we already handled this request_id, skip the write."""
-
     __tablename__ = "processed_messages"
 
     request_id: Mapped[str] = mapped_column(String(64), primary_key=True)
@@ -164,7 +162,6 @@ class PracticeProblem(Base):
     solution: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     rubric: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     tags: Mapped[list[Any]] = mapped_column(JSONB, default=list)
-    # mcq | short | code — LLM picks, user doesn't
     format: Mapped[str] = mapped_column(String(16), default="short")
     options: Mapped[list[Any]] = mapped_column(JSONB, default=list)
     correct_key: Mapped[Optional[str]] = mapped_column(String(8), nullable=True)

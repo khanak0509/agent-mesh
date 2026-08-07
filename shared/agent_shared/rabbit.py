@@ -96,10 +96,10 @@ async def consume_with_retry(
                 try:
                     data = json.loads(message.body.decode())
                     await handler(data)
-                except Exception:
+                except Exception as e:
+                    print("queue handler died:", e)
                     retries = _retry_count(message)
                     if retries < max_retries:
-                        # exponential backoff: 1s, 2s, 4s — RabbitMQ doesn't sleep for us
                         await asyncio.sleep(2**retries)
                         await publish_json(
                             channel,

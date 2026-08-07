@@ -1,5 +1,3 @@
-"""Daily concept + practice problems. LLM picks format (mcq/short/code)."""
-
 from datetime import date
 import re
 from uuid import uuid4
@@ -108,7 +106,6 @@ def _normalize_format(raw: str) -> str:
 
 
 def _sanitize_prompt_hints(prompt: str, hints: list | None) -> tuple[str, list[str]]:
-    """Keep question body clean; move tip-like lines into hints."""
     given = [h.strip() for h in (hints or []) if h and str(h).strip()]
     lines = [ln.strip() for ln in (prompt or "").splitlines() if ln.strip()]
     tip_re = re.compile(
@@ -136,7 +133,6 @@ def _draft_to_problem(draft: PracticeProblemDraft, *, slug_day: str | None, is_d
     correct = (draft.correct_key or "").strip().upper() or None
     if fmt == "mcq":
         if len(options) != 4:
-            # force usable mcq even if model skimps
             while len(options) < 4:
                 options.append({"label": chr(65 + len(options)), "text": "Option"})
             options = options[:4]
@@ -209,7 +205,6 @@ def get_or_create_daily_problem() -> dict:
             if row.format != "mcq" or len(row.options or []) >= 4:
                 return _problem_public(row)
         if row:
-            # wipe legacy / meta-prompt daily so we get a clean question
             session.execute(delete(PracticeAttempt).where(PracticeAttempt.problem_id == row.id))
             session.delete(row)
             session.flush()
@@ -228,7 +223,6 @@ def get_or_create_daily_problem() -> dict:
 
 
 def generate_practice(_track: str | None = None, _difficulty: str | None = None) -> dict:
-    # track/difficulty args ignored on purpose — LLM decides
     draft = _generate_draft("Fresh practice problem (not the daily).")
     problem = _draft_to_problem(draft, slug_day=None, is_daily=False)
     with session_scope() as session:
@@ -238,7 +232,6 @@ def generate_practice(_track: str | None = None, _difficulty: str | None = None)
 
 
 def _problem_public(row: PracticeProblem) -> dict:
-    # never leak correct_key to the client before submit
     prompt, hints = _sanitize_prompt_hints(row.prompt or "", row.hints or [])
     if _prompt_is_meta(prompt):
         parts = prompt.split("\n", 1)

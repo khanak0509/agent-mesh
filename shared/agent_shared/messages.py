@@ -36,7 +36,6 @@ class StudyRequest(BaseModel):
     question: str
     topic: Optional[str] = None
     session_id: Optional[str] = None
-    # "teach" = normal lesson; "reteach" = missed a quiz item, don't spawn more quiz/cards
     mode: str = "teach"
     created_at: datetime = Field(default_factory=utcnow)
 
@@ -95,7 +94,6 @@ class FlashcardPayload(BaseModel):
     hint: Optional[str] = None
 
 
-# Queue names — single place so services don't drift
 QUEUE_STUDY = "study.requests"
 QUEUE_QUIZ = "quiz.requests"
 QUEUE_QUIZ_SUBMIT = "quiz.submissions"

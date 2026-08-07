@@ -167,8 +167,9 @@ async def handle_progress(data: dict[str, Any], channel) -> None:
         )
         await publish_json(channel, QUEUE_RESPONSES, resp.model_dump())
         log.info("progress_done")
-    except Exception as exc:
-        log.exception("progress_failed", error=str(exc))
+    except Exception as e:
+        print("progress blew up:", e)
+        log.exception("progress_failed", error=str(e))
         await publish_json(
             channel,
             QUEUE_RESPONSES,
@@ -177,8 +178,8 @@ async def handle_progress(data: dict[str, Any], channel) -> None:
                 user_id=user_id,
                 intent=Intent.PROGRESS,
                 status="error",
-                error=str(exc),
-                content="Couldn't load progress right now.",
+                error=str(e),
+                content="Couldn't load progress.",
             ).model_dump(),
         )
         raise

@@ -61,7 +61,6 @@ class SubmitBody(BaseModel):
 
 
 class PracticeGenBody(BaseModel):
-    # ignored — LLM picks track/difficulty/format
     track: Optional[str] = None
     difficulty: Optional[str] = None
 
@@ -115,7 +114,8 @@ async def response_consumer(channel):
                     if rid:
                         await _fanout(rid, data)
                         log.info("response_fanout", request_id=rid, intent=data.get("intent"))
-    except Exception:
+    except Exception as e:
+        print("response consumer died:", e)
         log.exception("response_consumer_crashed")
         raise
 
@@ -190,8 +190,9 @@ async def api_daily():
     try:
         concept = await loop.run_in_executor(_pool, get_or_create_daily_concept)
         return concept
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except Exception as e:
+        print("daily concept failed:", e)
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.get("/api/arena/tracks")
@@ -204,8 +205,9 @@ async def api_arena_daily():
     loop = asyncio.get_event_loop()
     try:
         return await loop.run_in_executor(_pool, get_or_create_daily_problem)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except Exception as e:
+        print("daily problem failed:", e)
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/api/arena/generate")
@@ -213,8 +215,9 @@ async def api_arena_generate(_body: Optional[PracticeGenBody] = None):
     loop = asyncio.get_event_loop()
     try:
         return await loop.run_in_executor(_pool, generate_practice)
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except Exception as e:
+        print("practice gen failed:", e)
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/api/arena/submit")
@@ -227,10 +230,12 @@ async def api_arena_submit(body: PracticeSubmitBody):
             lambda: grade_practice(body.user_id, body.problem_id, body.answer, request_id),
         )
         return result
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except ValueError as e:
+        print("bad practice submit:", e)
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except Exception as e:
+        print("practice grade failed:", e)
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/api/ratings")
@@ -239,8 +244,9 @@ async def api_ratings(body: RatingBody):
         return upsert_rating(
             body.user_id, body.target_type, body.target_id, body.score, body.comment
         )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except ValueError as e:
+        print("bad rating:", e)
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @app.get("/api/ratings/summary")
@@ -330,7 +336,6 @@ async def websocket_endpoint(ws: WebSocket):
             await _unregister(request_id, q)
 
     async def route_study_action(msg: dict):
-        # plan controls always hit study; chat messages keep the client's intent_hint
         action = msg.get("action")
         forced_study = action in ("plan_start", "plan_advance") or msg.get("type") in (
             "plan_start",
@@ -346,7 +351,6 @@ async def websocket_endpoint(ws: WebSocket):
             "topic": msg.get("topic"),
             "num_questions": msg.get("num_questions", 5),
         }
-        # direct publish for plan actions — skip classifier noise
         if action in ("plan_start", "plan_advance"):
             rid = new_request_id()
             await publish_json(

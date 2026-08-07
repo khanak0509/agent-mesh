@@ -1,8 +1,3 @@
-"""LLM-judge eval gate for study-agent / quiz-agent.
-
-Runs a fixed prompt set, scores with structured judge output, fails if avg < threshold.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -64,7 +59,7 @@ def eval_study(prompts: list[dict], limit: int | None) -> list[dict]:
                 "notes": score.notes,
             }
         )
-        print(f"study {item['id']}: {score.score:.1f} — {score.notes}")
+        print(f"study {item['id']}: {score.score:.1f} - {score.notes}")
     return rows
 
 
@@ -81,7 +76,6 @@ def eval_quiz(prompts: list[dict], limit: int | None) -> list[dict]:
                 )
             }
         )
-        # structural checks before the judge — cheap and deterministic
         structural_penalty = 0.0
         for q in quiz.questions:
             labels = [o.label.upper() for o in q.options]
@@ -100,7 +94,7 @@ def eval_quiz(prompts: list[dict], limit: int | None) -> list[dict]:
                 "structural_penalty": structural_penalty,
             }
         )
-        print(f"quiz {item['id']}: {final:.1f} (penalty {structural_penalty}) — {score.notes}")
+        print(f"quiz {item['id']}: {final:.1f} (penalty {structural_penalty}) - {score.notes}")
     return rows
 
 
@@ -112,7 +106,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if not settings.openai_api_key:
-        print("OPENAI_API_KEY missing")
+        print("no OPENAI_API_KEY, can't judge")
         raise SystemExit(2)
 
     all_scores: list[float] = []
@@ -121,22 +115,22 @@ def main() -> None:
         study_prompts = load_json(Path(__file__).parent / "study_agent_prompts.json")
         rows = eval_study(study_prompts, args.limit)
         avg = sum(r["score"] for r in rows) / len(rows)
-        print(f"study-agent average: {avg:.2f}")
+        print(f"study avg {avg:.2f}")
         all_scores.append(avg)
 
     if args.service in ("quiz-agent", "both"):
         quiz_prompts = load_json(Path(__file__).parent / "quiz_agent_prompts.json")
         rows = eval_quiz(quiz_prompts, args.limit)
         avg = sum(r["score"] for r in rows) / len(rows)
-        print(f"quiz-agent average: {avg:.2f}")
+        print(f"quiz avg {avg:.2f}")
         all_scores.append(avg)
 
     overall = sum(all_scores) / len(all_scores)
-    print(f"overall: {overall:.2f} (threshold {args.threshold})")
+    print(f"overall {overall:.2f} (need {args.threshold})")
     if overall < args.threshold:
-        print("EVAL GATE FAILED")
+        print("eval failed")
         raise SystemExit(1)
-    print("EVAL GATE PASSED")
+    print("eval passed")
 
 
 if __name__ == "__main__":

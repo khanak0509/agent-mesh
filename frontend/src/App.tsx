@@ -102,7 +102,6 @@ export default function App() {
         return;
       }
 
-      // Keep the thinking chip until the full reply lands — don't mutate one box.
       if (msg.type === "start" && msg.intent === "study") {
         setAwaitLabel("Writing reply");
         return;
@@ -124,7 +123,6 @@ export default function App() {
       const pl = (msg.payload || {}) as Record<string, unknown>;
 
       if (msg.intent === "study") {
-        // Always a new message box — never overwrite the previous reply.
         if (msg.content?.trim()) {
           addBubble(msg.content, "agent");
         }

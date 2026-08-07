@@ -25,7 +25,9 @@ export function RatingStars({ targetType, targetId, label = "Rate this" }: Props
         setCount(s.count);
         setMine(s.mine?.score || 0);
       })
-      .catch(() => undefined);
+      .catch((e) => {
+        console.log("rating summary failed", e);
+      });
     return () => {
       cancelled = true;
     };
@@ -40,8 +42,8 @@ export function RatingStars({ targetType, targetId, label = "Rate this" }: Props
       const s = await api.ratingSummary(targetType, targetId);
       setAvg(s.average);
       setCount(s.count);
-    } catch {
-      /* keep optimistic score */
+    } catch (e) {
+      console.log("rating save failed", e);
     } finally {
       setSaving(false);
     }
@@ -70,7 +72,7 @@ export function RatingStars({ targetType, targetId, label = "Rate this" }: Props
         ))}
       </div>
       <span className="rating-meta">
-        {avg != null ? `${avg.toFixed(1)} · ${count}` : "be first"}
+        {count > 0 && avg != null ? `${avg.toFixed(1)} · ${count}` : ""}
       </span>
     </div>
   );

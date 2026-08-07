@@ -81,7 +81,6 @@ async def handle_quiz(data: dict[str, Any], channel) -> None:
                 )
             )
 
-        # include answer key so the UI can reteach on misses before advancing
         public_questions = []
         for q in questions:
             public_questions.append(
@@ -111,9 +110,10 @@ async def handle_quiz(data: dict[str, Any], channel) -> None:
         await publish_json(channel, QUEUE_RESPONSES, resp.model_dump())
         circuit_record_success("quiz-agent")
         log.info("quiz_done", quiz_id=quiz_id, n=len(questions))
-    except Exception as exc:
+    except Exception as e:
+        print("quiz gen blew up:", e)
         circuit_record_failure("quiz-agent")
-        log.exception("quiz_failed", error=str(exc))
+        log.exception("quiz_failed", error=str(e))
         await publish_json(
             channel,
             QUEUE_RESPONSES,
@@ -122,8 +122,8 @@ async def handle_quiz(data: dict[str, Any], channel) -> None:
                 user_id=user_id,
                 intent=Intent.QUIZ,
                 status="error",
-                error=str(exc),
-                content="Quiz generation failed. Try again shortly.",
+                error=str(e),
+                content="Quiz failed. Try again in a bit.",
             ).model_dump(),
         )
         raise
@@ -170,9 +170,10 @@ async def handle_submission(data: dict[str, Any], channel) -> None:
         await publish_json(channel, QUEUE_RESPONSES, resp.model_dump())
         circuit_record_success("quiz-agent")
         log.info("grade_done", score=result["score"])
-    except Exception as exc:
+    except Exception as e:
+        print("grading blew up:", e)
         circuit_record_failure("quiz-agent")
-        log.exception("grade_failed", error=str(exc))
+        log.exception("grade_failed", error=str(e))
         await publish_json(
             channel,
             QUEUE_RESPONSES,
@@ -181,8 +182,8 @@ async def handle_submission(data: dict[str, Any], channel) -> None:
                 user_id=user_id,
                 intent=Intent.QUIZ,
                 status="error",
-                error=str(exc),
-                content="Couldn't grade that attempt.",
+                error=str(e),
+                content="Couldn't grade that one.",
             ).model_dump(),
         )
         raise

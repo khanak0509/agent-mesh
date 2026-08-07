@@ -5,24 +5,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/khanak0509/agent-mesh/actions/workflows/ci.yml">
-    <img src="https://github.com/khanak0509/agent-mesh/actions/workflows/ci.yml/badge.svg" alt="CI" />
-  </a>
-  <a href="https://github.com/khanak0509/agent-mesh">
-    <img src="https://img.shields.io/github/last-commit/khanak0509/agent-mesh?style=flat-square" alt="Last commit" />
-  </a>
-  <a href="https://github.com/khanak0509/agent-mesh/stargazers">
-    <img src="https://img.shields.io/github/stars/khanak0509/agent-mesh?style=flat-square" alt="Stars" />
-  </a>
-  <a href="https://github.com/khanak0509/agent-mesh/network/members">
-    <img src="https://img.shields.io/github/forks/khanak0509/agent-mesh?style=flat-square" alt="Forks" />
-  </a>
-  <a href="https://github.com/khanak0509/agent-mesh/issues">
-    <img src="https://img.shields.io/github/issues/khanak0509/agent-mesh?style=flat-square" alt="Issues" />
-  </a>
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
   <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React" />

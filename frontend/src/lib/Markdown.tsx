@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 
-/** Lightweight markdown → React for study replies. */
 export function Markdown({ text }: { text: string }) {
   const src = (text || "").replace(/\r\n/g, "\n").trim();
   if (!src) return null;
@@ -135,7 +134,6 @@ function Block({ block }: { block: Block }) {
 }
 
 function inline(text: string): ReactNode[] {
-  // code, bold, italic
   const re = /(`[^`]+`|\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_)/g;
   const nodes: ReactNode[] = [];
   let last = 0;

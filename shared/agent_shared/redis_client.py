@@ -34,7 +34,6 @@ def get_session_context(user_id: str) -> Optional[str]:
 
 
 def append_session_turn(user_id: str, role: str, text: str, max_chars: int = 4000) -> None:
-    # keep a rolling transcript in redis so agents have short-term memory without hammering postgres
     key = f"session:{user_id}"
     r = get_redis()
     existing = r.get(key) or ""
@@ -44,7 +43,6 @@ def append_session_turn(user_id: str, role: str, text: str, max_chars: int = 400
 
 
 def check_rate_limit(user_id: str, limit: int = 60, window: int = 60) -> bool:
-    """Returns True if under limit, False if throttled."""
     key = f"rate:{user_id}"
     r = get_redis()
     count = r.incr(key)

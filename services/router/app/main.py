@@ -109,10 +109,9 @@ async def post_message(body: MessageIn):
 
     if circuit_is_open(target_service, settings.circuit_breaker_fail_threshold):
         if intent == Intent.QUIZ:
-            # don't hang the user — fall back to a study explanation instead
             intent = Intent.STUDY
             degraded = True
-            note = "quiz generation is temporarily unavailable, routing to study instead"
+            note = "quiz is down, sending to study instead"
             log.warning("circuit_open_fallback", from_intent="quiz", to_intent="study")
         else:
             raise HTTPException(
@@ -125,9 +124,10 @@ async def post_message(body: MessageIn):
         if depth >= settings.circuit_breaker_queue_depth and intent == Intent.QUIZ:
             intent = Intent.STUDY
             degraded = True
-            note = "quiz queue is backed up, sending a study explanation instead"
-    except Exception as exc:
-        log.warning("queue_depth_check_failed", error=str(exc))
+            note = "quiz queue is slammed, sending a study explanation instead"
+    except Exception as e:
+        print("couldn't check queue depth:", e)
+        log.warning("queue_depth_check_failed", error=str(e))
 
     queue = INTENT_QUEUE[intent]
     payload = {
