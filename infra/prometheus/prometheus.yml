@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 10s
+
+scrape_configs:
+  - job_name: router
+    static_configs:
+      - targets: ["router:8001"]
+  - job_name: study-agent
+    static_configs:
+      - targets: ["study-agent:8002"]
+  - job_name: quiz-agent
+    static_configs:
+      - targets: ["quiz-agent:8003"]
+  - job_name: progress
+    static_configs:
+      - targets: ["progress:8004"]
+  - job_name: gateway
+    static_configs:
+      - targets: ["gateway:8000"]
+  - job_name: rabbitmq
+    static_configs:
+      - targets: ["rabbitmq:15692"]
+    # management plugin metrics optional; scrape will fail quietly if absent
+    scrape_interval: 30s
